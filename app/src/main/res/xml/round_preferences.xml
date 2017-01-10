@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/roundSettings"
+        android:key = "round_setting">
+
+        <SwitchPreference
+            android:title="@string/lastRest"
+            android:key="last_rest"
+            android:summary="@string/lastRestSummary"
+            android:defaultValue = "true"
+            />
+
+        <SwitchPreference
+            android:title="@string/endOfSet"
+            android:key="end_of_set"
+            android:summary="@string/endOfSetSummary"
+            android:defaultValue = "false"/>
+
+
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
