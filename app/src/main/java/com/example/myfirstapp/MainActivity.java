@@ -31,6 +31,7 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity {
     public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
     MoreAccurateTimer timer;
+
     long secondsLeft = 0;
     long hours, hoursUp;
     long mins, minsUp;
@@ -236,14 +237,6 @@ public class MainActivity extends AppCompatActivity {
                         });
             }
         }.start();
-    }
-
-    /** Called when the user clicks the Send button */
-    public void sendMessage(View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        String message = "hardcoded string";
-        intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
     }
 
     public void openSelectionMenu(View view, final String[] timeArray, final String arrayName, final int selection){
@@ -771,6 +764,7 @@ public class MainActivity extends AppCompatActivity {
             setTimes(hours, mins, secs, timeRemaining);
         }
     }
+
 }
 
 
