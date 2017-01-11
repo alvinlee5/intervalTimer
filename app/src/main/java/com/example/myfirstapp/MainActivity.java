@@ -29,8 +29,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
     MoreAccurateTimer timer;
+    MediaPlayer mp;
 
     long secondsLeft = 0;
     long hours, hoursUp;
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
-
+        /*Declare final for use in inner classes; mostly used with OnClickListener*/
         final ImageView splash = (ImageView) findViewById(R.id.splash);
         final Button start_button = (Button) findViewById(R.id.start_button);
         final LinearLayout pauseStop = (LinearLayout) findViewById(R.id.pauseStop);
@@ -109,16 +109,19 @@ public class MainActivity extends AppCompatActivity {
         final String roundsArrayName =  "rounds";
         final int roundsSelect = 2;
 
+        // Load the saved values from preferences
         offTimeArray = loadArray(offTimeArrayName);
         onTimeArray = loadArray(onTimeArrayName);
         roundsArray = loadArray(roundsArrayName);
 
+        // Display the saved values
         roundsPassed.setText("0/" + roundsArray[0]);
         seconds_off.setText("Seconds Off" + "\n" + "\n" + offTimeArray[0] + offTimeArray[1] + ":" + offTimeArray[2] + offTimeArray[3]);
         seconds_on.setText("Seconds On" + "\n" + "\n" + onTimeArray[0] + onTimeArray[1] + ":" + onTimeArray[2] + onTimeArray[3]);
         rounds.setText("Rounds" + "\n" + "\n" + roundsArray[0]);
         setMessage.setText("READY");
 
+        // Start button pressed
         start_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,10 +133,12 @@ public class MainActivity extends AppCompatActivity {
                 seconds_on.setEnabled(false);
                 seconds_off.setEnabled(false);
                 rounds.setEnabled(false);
-                MediaPlayer.create(getApplicationContext(), R.raw.beep).start();
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.beep);
+                soundControl();
             }
         });
 
+        // Pause button
         pause.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -144,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Resume button
         resume.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -153,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Stop button
         stop.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -176,53 +183,39 @@ public class MainActivity extends AppCompatActivity {
                 rounds.setEnabled(true);
             }
         });
-
+        // Button for setting the off time for the timer
         seconds_off.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 openSelectionMenu(view, offTimeArray, offTimeArrayName, offTimeSelect);
             }
         });
+        // Button for setting the on time for the timer
         seconds_on.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 openSelectionMenu(view, onTimeArray, onTimeArrayName, onTimeSelect);
             }
         });
+        // Button for setting the number of rounds in the workout
         rounds.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 openSelectionMenu(view, roundsArray, roundsArrayName, roundsSelect);
             }
         });
+
+        /*Splash screen with constant display time currently 0; all relevant views become visible
+        when the splash screen ends. Serves no real purpose, just an experiment.*/
         new CountDownTimer(0, 0) {
             public void onTick(long millisUntilFinished) {
             }
             public void onFinish() {
-                /* Basically the section below fades out the splash screen and makes the button and
-                edittext part visible. splash.animate() returns a ViewPropertyAnimator object, as
-                well as .alpha and .setListener (which is why we can chain method calls). The
-                setListener() method takes in an Animator.AnimatorListener object, which is basically
-                the thing that "listens" to the animation (i.e. when it ends, stops, etc.).
 
-                Note: Animator.AnimatorListener object that setListener() is supposed to take in
-                can be replaced by AnimatorListenerAdapter() object.
-
-                The AnimatorListenerAdapter() object basically has a bunch of methods that indicate
-                when the animation begins, ends, etc. We override the desired method in that class
-                (in this case onAnimationEnd(.)) to do what we want when the animation ends/starts/
-                etc.
-                 */
                 splash.animate()
-                        .alpha(0.0f)
+                        .alpha(0.0f)    // fully transparent
                         .setListener(new AnimatorListenerAdapter() {
-                            /* This is an anonymous class, which is why we declare (i.e. override
-                            a superclass method) and instantiate in the single expression.
-
-                            Or not...it is a well defined class which interfaces
-                            Animator.AnimatorListener...(need to read up on interface and anonymous
-                            classes which implements interfaces).
-                             */
+                            // When the alpha animation is finished, set visibilities
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
@@ -240,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openSelectionMenu(View view, final String[] timeArray, final String arrayName, final int selection){
-        // Consider removing the try block...
+        // Remove try block (?)
         final FrameLayout layout_MainMenu = (FrameLayout) findViewById(R.id.mainmenu);        // framelayout object
         final PopupWindow numpad;
         final TextView offtime;
@@ -414,6 +407,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    // Change the arrays values on button press (shift values left, add new button press to last index
     public void mutateTimeArray(String[] time, String buttonPress){
         int sizeOfArray = time.length;
         if (time[0].equals("0")){
@@ -423,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
             time[sizeOfArray-1] = buttonPress;
         }
     }
+    // Save the array in preferences
     public boolean saveArray(String[] array, String arrayName){
         SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);    //MainActivity.this. at beginning
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -431,7 +426,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return editor.commit();
     }
-
     public String[] loadArray(String arrayName){
         SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
         String array[] = new String[4];     //it's always 4
@@ -440,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return array;
     }
-
+    // Changing the rounds array; only use the first index
     public void roundsSelect(String[] rounds, String buttonPress){
         if (rounds[0].length() != 3){
             if (!(rounds[0].equals("0") && buttonPress.equals("0"))){
@@ -484,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
+    // Increment / decrement times on each tick
     public void timeIncrement(){
         if (mins != 0 && secs == 0){
             mins = mins - 1;
@@ -510,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
             secsUp = 0;
         }
     }
-
+    // Update time remaining in work / rest set, called on each tick
     public void updateSetTime(){
         TextView setTimeLeft = (TextView) findViewById(R.id.setTimeLeft);
         TextView setMessage = (TextView) findViewById(R.id.setMessage);
@@ -531,14 +525,16 @@ public class MainActivity extends AppCompatActivity {
                 setTimes(0, (long)setOnMins, (long)setOnSecs, setTimeLeft);
                 roundsCount = roundsCount + 1;
                 roundsPassed.setText(roundsCount + "/" + totalRounds);
-                MediaPlayer.create(getApplicationContext(), R.raw.gunshot).start();
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.gunshot);
+                soundControl();
             }else{
                 setOnSecs = setOnSecs - 1;
                 setTimes(0, (long)setOnMins, (long)setOnSecs, setTimeLeft);
             }
         }else if (workSet == 1){
             if (setOnMins == 0 && setOnSecs == 1){
-                MediaPlayer.create(getApplicationContext(), R.raw.boxingbell).start();
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.boxingbell);
+                soundControl();
                 workSet = 0;
                 topBackground.setColor(0xffFF3333);
                 botBackground.setColor(0xffFF3333);
@@ -558,7 +554,8 @@ public class MainActivity extends AppCompatActivity {
 
         }else{
             if (setOffMins == 0 && setOffSecs == 1){
-                MediaPlayer.create(getApplicationContext(), R.raw.gunshot).start();
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.gunshot);
+                soundControl();
                 workSet = 1;
                 topBackground.setColor(0xff00FF00);
                 botBackground.setColor(0xff00FF00);
@@ -580,6 +577,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Called on start
     public MoreAccurateTimer startCountDown(){
         String[] onTimeArray = loadArray("onTime");
         String[] offTimeArray = loadArray("offTime");
@@ -667,6 +665,7 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
+    // Countdown the remainder of the current second once we resume the timer
     public MoreAccurateTimer preResumeCountDown(){
         long msLeftInSec = msUntilFinished % 1000;
         return new MoreAccurateTimer(msLeftInSec, msLeftInSec){
@@ -678,7 +677,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }.start();
     }
-
+    // Continue countdown like normal; starts after preResumeCountdown finished
     public MoreAccurateTimer resumeCountDown(){
         long totalMsLeft = msUntilFinished / 1000 * 1000;
         msUntilFinished = 0;
@@ -725,6 +724,7 @@ public class MainActivity extends AppCompatActivity {
         }.start();
 
     }
+
     public void timerTick(){
         if (workSet == -1){
             if (prepTime == 2){
@@ -733,7 +733,8 @@ public class MainActivity extends AppCompatActivity {
             prepTime = prepTime - 1;
             TextView setTimeLeft = (TextView) findViewById(R.id.setTimeLeft);
             setTimeLeft.setText("00:0" + prepTime);
-            MediaPlayer.create(getApplicationContext(), R.raw.beep).start();
+            mp = MediaPlayer.create(getApplicationContext(), R.raw.beep);
+            soundControl();
 
         }else if (workSet == -2){
             TextView setTimeLeft = (TextView) findViewById(R.id.setTimeLeft);
@@ -747,7 +748,8 @@ public class MainActivity extends AppCompatActivity {
             topBackground.setColor(0xff00FF00);
             botBackground.setColor(0xff00FF00);
 
-            MediaPlayer.create(getApplicationContext(), R.raw.gunshot).start();
+            mp = MediaPlayer.create(getApplicationContext(), R.raw.gunshot);
+            soundControl();
             setMessage.setText("GO!");
             roundsCount++;
             roundsPassed.setText(roundsCount + "/" + totalRounds);
@@ -765,20 +767,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void soundControl(){
+        mp.start();
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+            }
+        });
+    }
 }
-
-
-//http://www.androidhub4you.com/2012/07/how-to-create-popup-window-in-android.html
-//http://stackoverflow.com/questions/3221488/blur-or-dim-background-when-android-popupwindow-active
-//http://stackoverflow.com/questions/28806879/animating-drawable-alpha-property     12/23/16
-
-//http://rushabh138.blogspot.ca/2013/09/onscreen-number-pad-in-android.html
-// http://stackoverflow.com/questions/5821051/how-to-display-the-value-of-a-variable-on-the-screen
-// http://stackoverflow.com/questions/3496269/how-to-put-a-border-around-an-android-textview
-// http://stackoverflow.com/questions/3404582/adding-text-to-imageview-in-android 12/24/16
-
-//http://stackoverflow.com/questions/28578701/create-android-shape-background-programmatically          12/25/16
-
-
-//http://stackoverflow.com/questions/3876680/is-it-possible-to-add-an-array-or-object-to-sharedpreferences-on-android   12/28/16
-
